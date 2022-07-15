@@ -3,6 +3,8 @@ const passport = require('passport')
 const dotenv = require('dotenv')
 const session = require('express-session')
 const axios = require("axios")
+const parser = require('xml2json');
+const fs = require('fs');
 const router = express.Router()
 const MongoClient = require('mongodb').MongoClient
 const app = express()
@@ -27,6 +29,7 @@ MongoClient.connect('mongodb+srv://' + id_db + ':' + password_db + backurl,
     }
 
     db_user = client.db('hack');
+
 
     app.listen(8080, function (req, res) {
         console.log('8080에 연결함')
@@ -78,6 +81,81 @@ MongoClient.connect('mongodb+srv://' + id_db + ':' + password_db + backurl,
                     })
                 }
             })
+    })
+
+    app.get('/upload', function(req, res) {
+        function upload(data) {
+            db_user.collection('post').insertOne(data,
+                function (err) {
+                    if (err) {
+                        console.log('error occurred')
+                    }
+                    else {
+                        console.log('success to uploading post')
+                    }
+                })
+        }
+        const post_info = {
+            post_type: 3,
+            post_place: '선린인터넷고등학교',
+            post_hori: 0.00001,
+            post_verti: 0.00001,
+            post_desc: '선린인고에서 화재가 발생했어요... 당분간 학교는 폐쇄할 것 같습니다.',
+            post_photo: '~~~.jpg',
+            post_video: 0,
+            post_link: 'youtube/abc',
+            post_share_count: 0,
+            post_like_count: 0,
+            post_user: '이하람',
+            post_id: 1
+        }
+        upload(post_info)
+    })
+
+    app.get('/comment', function(req, res) {
+        function upload_comment(data) {
+            db_user.collection('comment').insertOne(data,
+                function (err) {
+                    if (err) {
+                        console.log('error occurred')
+                    }
+                    else {
+                        console.log('success to uploading comment')
+                    }
+                })
+        }
+        const comment_info = {
+            comment_user: '이하람',
+            comment_desc: '불난 것 같던데 ㅜㅜ',
+            comment_id: 1
+        }
+        upload_comment(comment_info)
+    })
+
+    app.get('/api', function(req, res) {
+        const private_key = process.env.KEY
+        // const xml = fs.readFileSync( 'a.xml', 'utf-8');
+        //
+        // const json = JSON.parse(parser.toJson(xml));
+        // for (let i = 0; i < json.length; i ++) {
+        //
+        // }
+        // res.json(json);
+
+        axios({
+            method: 'get',
+            url: 'http://openapi.seoul.go.kr:8088/' + private_key + '/xml/AccInfo/1/5/',
+            responseType: 'xml'
+        })
+        .then(function (response, err) {
+            if (err) {
+                console.log('error occurred')
+            }
+            else {
+                const json = JSON.parse(parser.toJson(response.data));
+                res.json(json);
+            }
+        });
     })
 
 })
