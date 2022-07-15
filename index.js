@@ -1,12 +1,11 @@
-export const express = require('express')
-export const passport = require('passport')
-export const dotenv = require('dotenv')
-export const session = require('express-session')
-export const axios = require("axios")
-export const router = express.Router()
-export const MongoClient = require('mongodb').MongoClient
-
-export const app = express()
+const express = require('express')
+const passport = require('passport')
+const dotenv = require('dotenv')
+const session = require('express-session')
+const axios = require("axios")
+const router = express.Router()
+const MongoClient = require('mongodb').MongoClient
+const app = express()
 dotenv.config()
 
 app.use(express.static('public'))
@@ -16,10 +15,10 @@ app.use(passport.session(undefined))
 
 app.use(express.urlencoded({extended: true}))
 
-export let db_user, db_list, db_api
-export const id_db = process.env.ID
-export const password_db = process.env.PASSWORD
-export const backurl = '@cluster0.fzore.mongodb.net/?retryWrites=true&w=majority'
+let db_user, db_list, db_api
+const id_db = process.env.ID
+const password_db = process.env.PASSWORD
+const backurl = '@cluster0.fzore.mongodb.net/?retryWrites=true&w=majority'
 
 MongoClient.connect('mongodb+srv://' + id_db + ':' + password_db + backurl,
     function(err, client) {
@@ -34,14 +33,14 @@ MongoClient.connect('mongodb+srv://' + id_db + ':' + password_db + backurl,
     });
 
     app.get('/signup', function(req, res){
-        const email_value = 'iamraram'
-        const pw_value = '123456'
-        const pw_value2 = '123456'
+        const email_value = 'iamraram@gmail.com'
+        const pw_value = '12345678'
         const name_value = '이하람'
+        const address_value = '서울특별시 은평구 응암동'
 
         function signup(data) {
             db_user.collection('user').insertOne(data,
-                function (err,result) {
+                function (err) {
                     if (err) {
                         console.log('error occurred')
                     }
@@ -51,38 +50,34 @@ MongoClient.connect('mongodb+srv://' + id_db + ':' + password_db + backurl,
                 })
         }
 
-        if (email_value === '^[a-zA-Z0-9+-\_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$') {
-            if (pw_value.length >= 8) {
-                if (name_value === '/^[가-힣\\s]+$/') {
-                    if (pw_value === pw_value2) {
-                        const user_info = {
-                            user_email: email_value,
-                            user_pw: pw_value,
-                            user_name: name_value
-                        }
-                        signup(user_info)
-                    }
-                    else {
-                        res.end('incorrect password and checking password')
-                    }
+        const user_info = {
+            user_email: email_value,
+            user_pw: pw_value,
+            user_name: name_value,
+            user_accident: [],
+            user_level_point: [1, 0],
+            user_address: address_value,
+            user_share_count: 0,
+            user_profile_photo: ''
+        }
+        signup(user_info)
+    })
+
+    app.get('/login', function(req, res){
+        const email_value = 'iamraram@gmail.com'
+        const pw_value = '12345678'
+
+        db_user.collection('user').findOne({ user_email: email_value, user_pw: pw_value },
+            function(err, result) {
+                if (err) {
+                    console.log('incorrect user')
                 }
                 else {
-                    res.end('incorrect name value')
+                    res.json({
+                        result
+                    })
                 }
-            }
-            else {
-                res.end('incorrect password length')
-            }
-        }
-        else {
-            res.end('incorrect email address')
-        }
-    });
+            })
+    })
 
 })
-
-router.get('/', function(req, res, next){
-    res.json([{
-
-    }])
-});
